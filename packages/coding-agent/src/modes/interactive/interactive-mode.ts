@@ -861,7 +861,7 @@ export class InteractiveMode {
 				cycleKeys.length > 0
 					? theme.fg("muted", ` (${formatKeyText(cycleKeys.join("/"), { capitalize: true })} to cycle)`)
 					: "";
-			console.log(theme.fg("dim", `Model scope: ${modelList}${cycleHint}`));
+			console.log(theme.fg("dim", ` Model scope: ${modelList}${cycleHint}`));
 		}
 
 		// Keep one component tree and remount it when changing renderers.
