@@ -944,13 +944,17 @@ export class InteractiveMode {
 				"dim",
 				`Press ${keyText("app.tools.expand")} to show full startup help and loaded resources.`,
 			);
-			const onboarding = theme.fg(
-				"dim",
-				`Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.`,
-			);
+			// PI_ONBOARDING replaces this line, and an empty value removes it. An
+			// embedder has its own thing to say here, and patching the string in a
+			// fork means re-patching it on every rebase.
+			const onboardingText =
+				process.env.PI_ONBOARDING ??
+				`Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.`;
+			const onboarding = onboardingText ? theme.fg("dim", onboardingText) : "";
+			const tail = onboarding ? `\n\n${onboarding}` : "";
 			this.builtInHeader = new ExpandableText(
-				() => `${logo}\n${compactInstructions}\n${compactOnboarding}\n\n${onboarding}`,
-				() => `${logo}\n${expandedInstructions}\n\n${onboarding}`,
+				() => `${logo}\n${compactInstructions}\n${compactOnboarding}${tail}`,
+				() => `${logo}\n${expandedInstructions}${tail}`,
 				this.getStartupExpansionState(),
 				1,
 				0,
