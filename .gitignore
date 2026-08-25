@@ -8,7 +8,11 @@ dist/
 packages/*/dist/
 packages/*/dist-chrome/
 packages/*/dist-firefox/
-packages/ai/src/providers/data/
+# Committed in this fork. Upstream regenerates it from models.dev during the
+# build, which makes the build depend on a third-party catalogue on the day it
+# runs: the v0.84.1 tag stopped compiling when that catalogue dropped an api id
+# its source still named. A box must not build against a moving target.
+# packages/ai/src/providers/data/
 packages/ai/src/providers/.model-generation-*/
 *.cpuprofile
 
