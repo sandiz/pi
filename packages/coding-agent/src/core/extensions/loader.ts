@@ -477,6 +477,46 @@ async function loadExtensionModule(extensionPath: string, cacheToken?: Extension
 /**
  * Create an Extension object with empty collections.
  */
+/**
+ * The npm package a file belongs to, for extensions that never call describe().
+ *
+ * A package root is a directory with a package.json sitting directly inside a
+ * `node_modules`, or one level in for a scope. Walking up to the NEAREST
+ * package.json instead would be wrong in the one case that matters: a repo's own
+ * extension file would take the repo's name and description, which is a confident
+ * wrong label where the filename was merely a plain one.
+ */
+function owningPackage(resolvedPath: string): { name: string; description?: string; entries: number } | undefined {
+	let dir = path.dirname(resolvedPath);
+	for (let up = 0; up < 12; up++) {
+		const parent = path.dirname(dir);
+		const grandparent = path.dirname(parent);
+		const isRoot =
+			path.basename(parent) === "node_modules" ||
+			(path.basename(dir).startsWith("@") === false &&
+				path.basename(parent).startsWith("@") &&
+				path.basename(grandparent) === "node_modules");
+		if (isRoot) {
+			try {
+				const manifest = JSON.parse(fs.readFileSync(path.join(dir, "package.json"), "utf-8"));
+				const name = typeof manifest.name === "string" ? manifest.name : undefined;
+				if (!name) return undefined;
+				const entries = manifest.pi?.extensions;
+				return {
+					name: name.includes("/") ? name.slice(name.indexOf("/") + 1) : name,
+					description: typeof manifest.description === "string" ? manifest.description : undefined,
+					entries: Array.isArray(entries) ? entries.length : 1,
+				};
+			} catch {
+				return undefined;
+			}
+		}
+		if (parent === dir) return undefined;
+		dir = parent;
+	}
+	return undefined;
+}
+
 function createExtension(extensionPath: string, resolvedPath: string): Extension {
 	const source =
 		extensionPath.startsWith("<") && extensionPath.endsWith(">")
@@ -484,9 +524,17 @@ function createExtension(extensionPath: string, resolvedPath: string): Extension
 			: "local";
 	const baseDir = extensionPath.startsWith("<") ? undefined : path.dirname(resolvedPath);
 
+	// Seeded, not fixed: describe() runs after this and overwrites both fields, so an
+	// extension that names itself still wins. Two entries from one package keep the
+	// filename, or `pi-background-tasks` would appear twice under one label.
+	const pkg = baseDir ? owningPackage(resolvedPath) : undefined;
+	const stem = path.basename(resolvedPath, path.extname(resolvedPath));
+
 	return {
 		path: extensionPath,
 		resolvedPath,
+		name: pkg && (pkg.entries > 1 ? `${pkg.name}/${stem}` : pkg.name),
+		description: pkg?.description,
 		sourceInfo: createSyntheticSourceInfo(extensionPath, { source, baseDir }),
 		handlers: new Map(),
 		tools: new Map(),
