@@ -46,3 +46,6 @@ plans/
 .pi/hf-sessions/
 .pi/hf-sessions-backup/
 collect.sh
+
+# npm pack output, rebuilt by install.sh on every run
+*.tgz

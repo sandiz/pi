@@ -3,9 +3,9 @@ import { type SpawnSyncReturns, spawnSync } from "child_process";
 import {
 	accessSync,
 	chmodSync,
-	constants as fsConstants,
 	createWriteStream,
 	existsSync,
+	constants as fsConstants,
 	mkdirSync,
 	readdirSync,
 	renameSync,
@@ -89,9 +89,7 @@ function commandExists(cmd: string): boolean {
 	// is present but broken still reports its own error when actually used, which
 	// is a better place to hear about it than a startup probe.
 	const dirs = (process.env.PATH ?? "").split(delimiter).filter(Boolean);
-	const exts = platform() === "win32"
-		? (process.env.PATHEXT ?? ".EXE;.CMD;.BAT").split(";").filter(Boolean)
-		: [""];
+	const exts = platform() === "win32" ? (process.env.PATHEXT ?? ".EXE;.CMD;.BAT").split(";").filter(Boolean) : [""];
 	for (const dir of dirs) {
 		for (const ext of exts) {
 			const candidate = join(dir, cmd + ext);

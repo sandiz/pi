@@ -7,7 +7,6 @@ import { InMemoryModelsStore } from "../src/models-store.ts";
 import { builtinModels, builtinProviders, getBuiltinModel } from "../src/providers/all.ts";
 import { amazonBedrockProvider } from "../src/providers/amazon-bedrock.ts";
 import { anthropicProvider } from "../src/providers/anthropic.ts";
-import { cloudflareAIGatewayProvider } from "../src/providers/cloudflare-ai-gateway.ts";
 import { cloudflareWorkersAIProvider } from "../src/providers/cloudflare-workers-ai.ts";
 import { fauxAssistantMessage, fauxProvider } from "../src/providers/faux.ts";
 import { googleVertexProvider } from "../src/providers/google-vertex.ts";
@@ -179,36 +178,6 @@ describe("builtin providers", () => {
 		const result = await configured.getAuth(model.provider);
 		expect(result?.auth).toEqual({ apiKey: "cf-key" });
 		expect(result?.env).toEqual({ CLOUDFLARE_ACCOUNT_ID: "account-id" });
-	});
-
-	it("requires Cloudflare AI Gateway account and gateway config and returns scoped env headers", async () => {
-		const missingGateway = createModels({
-			authContext: fakeAuthContext({ CLOUDFLARE_API_KEY: "cf-key", CLOUDFLARE_ACCOUNT_ID: "account-id" }),
-		});
-		missingGateway.setProvider(cloudflareAIGatewayProvider());
-		const model = missingGateway.getModels("cloudflare-ai-gateway")[0];
-		expect(await missingGateway.getAuth(model.provider)).toBeUndefined();
-
-		const configured = createModels({
-			authContext: fakeAuthContext({
-				CLOUDFLARE_API_KEY: "cf-key",
-				CLOUDFLARE_ACCOUNT_ID: "account-id",
-				CLOUDFLARE_GATEWAY_ID: "gateway-id",
-			}),
-		});
-		configured.setProvider(cloudflareAIGatewayProvider());
-		const result = await configured.getAuth(model.provider);
-		expect(result?.auth).toEqual({
-			headers: {
-				"cf-aig-authorization": "Bearer cf-key",
-				Authorization: null,
-				"x-api-key": null,
-			},
-		});
-		expect(result?.env).toEqual({
-			CLOUDFLARE_ACCOUNT_ID: "account-id",
-			CLOUDFLARE_GATEWAY_ID: "gateway-id",
-		});
 	});
 
 	it("runs provider-owned Vertex API key and ADC login flows", async () => {

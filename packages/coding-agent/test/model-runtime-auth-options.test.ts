@@ -92,10 +92,6 @@ describe("ModelRuntime auth options", () => {
 				}),
 				expect.objectContaining({
 					type: "api_key",
-					provider: expect.objectContaining({ id: "cloudflare-ai-gateway", name: "Cloudflare AI Gateway" }),
-				}),
-				expect.objectContaining({
-					type: "api_key",
 					provider: expect.objectContaining({ id: "cloudflare-workers-ai", name: "Cloudflare Workers AI" }),
 				}),
 			]),

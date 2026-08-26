@@ -615,7 +615,7 @@ function detectOpenAICompletionsCompat(model: Model<"openai-completions">): Open
 	const isMoonshot = provider === "moonshotai" || provider === "moonshotai-cn" || baseUrl.includes("api.moonshot.");
 	const isOpenRouter = provider === "openrouter" || baseUrl.includes("openrouter.ai");
 	const isCloudflareWorkersAI = provider === "cloudflare-workers-ai" || baseUrl.includes("api.cloudflare.com");
-	const isCloudflareAiGateway = provider === "cloudflare-ai-gateway" || baseUrl.includes("gateway.ai.cloudflare.com");
+	const isCloudflareAiGateway = baseUrl.includes("gateway.ai.cloudflare.com");
 	const isNvidia = provider === "nvidia" || baseUrl.includes("integrate.api.nvidia.com");
 	const isAntLing = provider === "ant-ling" || baseUrl.includes("api.ant-ling.com");
 	const isTogetherReasoningOnly = isTogether && TOGETHER_REASONING_ONLY_MODELS.has(model.id);
@@ -736,7 +736,6 @@ const OPENAI_GRAMMAR_TOOL_PROVIDERS = new Set([
 	"azure-openai-responses",
 	"github-copilot",
 	"opencode",
-	"cloudflare-ai-gateway",
 ]);
 const OPENAI_GRAMMAR_TOOL_APIS = new Set<Api>([
 	"openai-responses",
@@ -1548,63 +1547,6 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 			}
 		}
 
-		// Process Cloudflare AI Gateway models
-		if (data["cloudflare-ai-gateway"]?.models) {
-			for (const [prefixedId, model] of Object.entries(data["cloudflare-ai-gateway"].models)) {
-				const m = model as ModelsDevModel;
-				if (m.tool_call !== true) continue;
-
-				const slashIdx = prefixedId.indexOf("/");
-				if (slashIdx === -1) continue;
-				const upstream = prefixedId.slice(0, slashIdx);
-				const nativeId = prefixedId.slice(slashIdx + 1);
-
-				let api: "anthropic-messages" | "openai-completions" | "openai-responses";
-				let baseUrl: string;
-				let id: string;
-				if (upstream === "openai") {
-					api = "openai-responses";
-					baseUrl = CLOUDFLARE_AI_GATEWAY_OPENAI_BASE_URL;
-					id = nativeId;
-				} else if (upstream === "anthropic") {
-					api = "anthropic-messages";
-					baseUrl = CLOUDFLARE_AI_GATEWAY_ANTHROPIC_BASE_URL;
-					id = nativeId;
-				} else if (upstream === "workers-ai") {
-					api = "openai-completions";
-					baseUrl = CLOUDFLARE_AI_GATEWAY_COMPAT_BASE_URL;
-					id = prefixedId;
-				} else {
-					continue;
-				}
-
-				// Gateway passthroughs forward session affinity headers to upstreams that
-				// use them for cache/routing affinity.
-				const compat =
-					upstream === "anthropic" || upstream === "workers-ai" ? { sendSessionAffinityHeaders: true } : undefined;
-
-				models.push({
-					id,
-					name: m.name || id,
-					api,
-					provider: "cloudflare-ai-gateway",
-					baseUrl,
-					reasoning: m.reasoning === true,
-					input: m.modalities?.input?.includes("image") ? ["text", "image"] : ["text"],
-					cost: {
-						input: m.cost?.input || 0,
-						output: m.cost?.output || 0,
-						cacheRead: m.cost?.cache_read || 0,
-						cacheWrite: m.cost?.cache_write || 0,
-					},
-					contextWindow: m.limit?.context || 4096,
-					maxTokens: m.limit?.output || 4096,
-					...(compat ? { compat } : {}),
-				});
-				recordModelsDevReasoningOptions("cloudflare-ai-gateway", id, m);
-			}
-		}
-
 		// Process xAi models
 		if (data.xai?.models) {
 			for (const [modelId, model] of Object.entries(data.xai.models)) {
@@ -2307,11 +2249,6 @@ async function generateModels() {
 		if (candidate.provider === "openai" && OPENAI_LONG_CONTEXT_PRICING_MODEL_IDS.has(candidate.id)) {
 			const standardCost = OPENAI_GPT_56_STANDARD_COSTS[candidate.id];
 			candidate.cost = withOpenAiLongContextPricing(standardCost ?? candidate.cost);
-		}
-		// Cloudflare AI Gateway passes OpenAI usage through at OpenAI list prices.
-		if (candidate.provider === "cloudflare-ai-gateway") {
-			const standardCost = OPENAI_GPT_56_STANDARD_COSTS[candidate.id];
-			if (standardCost) candidate.cost = withOpenAiLongContextPricing(standardCost);
 		}
 		// models.dev reports gpt-5-pro output as 272000 (a duplicate of the input sub-limit);
 		// the actual max output is 128000. Also propagates to the derived Azure clone.

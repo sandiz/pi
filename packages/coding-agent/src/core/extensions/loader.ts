@@ -477,15 +477,6 @@ async function loadExtensionModule(extensionPath: string, cacheToken?: Extension
 /**
  * Create an Extension object with empty collections.
  */
-/**
- * The npm package a file belongs to, for extensions that never call describe().
- *
- * A package root is a directory with a package.json sitting directly inside a
- * `node_modules`, or one level in for a scope. Walking up to the NEAREST
- * package.json instead would be wrong in the one case that matters: a repo's own
- * extension file would take the repo's name and description, which is a confident
- * wrong label where the filename was merely a plain one.
- */
 function owningPackage(resolvedPath: string): { name: string; description?: string; entries: number } | undefined {
 	let dir = path.dirname(resolvedPath);
 	for (let up = 0; up < 12; up++) {
@@ -524,9 +515,6 @@ function createExtension(extensionPath: string, resolvedPath: string): Extension
 			: "local";
 	const baseDir = extensionPath.startsWith("<") ? undefined : path.dirname(resolvedPath);
 
-	// Seeded, not fixed: describe() runs after this and overwrites both fields, so an
-	// extension that names itself still wins. Two entries from one package keep the
-	// filename, or `pi-background-tasks` would appear twice under one label.
 	const pkg = baseDir ? owningPackage(resolvedPath) : undefined;
 	const stem = path.basename(resolvedPath, path.extname(resolvedPath));
 

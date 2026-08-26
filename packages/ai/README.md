@@ -68,7 +68,6 @@ Unified LLM API with provider collections, automatic auth resolution, token and 
 - **Mistral**
 - **Groq**
 - **Cerebras**
-- **Cloudflare AI Gateway**
 - **Cloudflare Workers AI**
 - **xAI**
 - **OpenRouter**
@@ -400,8 +399,7 @@ const credential = {
   type: 'api_key',
   key: '...',
   env: {
-    CLOUDFLARE_ACCOUNT_ID: 'account-id',
-    CLOUDFLARE_GATEWAY_ID: 'gateway-id'
+    CLOUDFLARE_ACCOUNT_ID: 'account-id'
   }
 } as const;
 ```
@@ -423,7 +421,6 @@ Built-in providers resolve these env vars (Node.js; in browsers pass `apiKey` ex
 | Mistral | `MISTRAL_API_KEY` |
 | Groq | `GROQ_API_KEY` |
 | Cerebras | `CEREBRAS_API_KEY` |
-| Cloudflare AI Gateway | `CLOUDFLARE_API_KEY` + `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_GATEWAY_ID` |
 | Cloudflare Workers AI | `CLOUDFLARE_API_KEY` + `CLOUDFLARE_ACCOUNT_ID` |
 | xAI | `XAI_API_KEY` |
 | Fireworks | `FIREWORKS_API_KEY` |
@@ -1456,13 +1453,12 @@ Pass `env` in stream options to scope provider configuration to a request. Value
 
 ```typescript
 const models = builtinModels();
-const model = models.getModel('cloudflare-ai-gateway', 'workers-ai/@cf/moonshotai/kimi-k2.6')!;
+const model = models.getModel('cloudflare-workers-ai', '@cf/moonshotai/kimi-k2.6')!;
 
 const response = await models.complete(model, context, {
   env: {
     CLOUDFLARE_API_KEY: '...',
-    CLOUDFLARE_ACCOUNT_ID: 'account-id',
-    CLOUDFLARE_GATEWAY_ID: 'gateway-id'
+    CLOUDFLARE_ACCOUNT_ID: 'account-id'
   }
 });
 ```

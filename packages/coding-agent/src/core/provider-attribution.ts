@@ -27,7 +27,6 @@ function isNvidiaNimModel(model: Model<Api>): boolean {
 function isCloudflareModel(model: Model<Api>): boolean {
 	return (
 		model.provider === "cloudflare-workers-ai" ||
-		model.provider === "cloudflare-ai-gateway" ||
 		matchesHost(model.baseUrl, CLOUDFLARE_API_HOST) ||
 		matchesHost(model.baseUrl, CLOUDFLARE_AI_GATEWAY_HOST)
 	);

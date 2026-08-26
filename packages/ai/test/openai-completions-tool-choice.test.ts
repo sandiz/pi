@@ -1403,7 +1403,7 @@ describe("openai-completions tool_choice", () => {
 	});
 
 	it("sends max_tokens for OpenCode completions models", async () => {
-		const cases = [getModel("opencode-go", "kimi-k2.6")!, getModel("opencode", "grok-build-0.1")!] as const;
+		const cases = [getModel("opencode-go", "kimi-k2.6")!, getModel("opencode", "kimi-k2.5")!] as const;
 
 		for (const model of cases) {
 			let payload: unknown;
@@ -1454,28 +1454,6 @@ describe("openai-completions tool_choice", () => {
 			expect(params.max_tokens).toBe(123);
 			expect(params.max_completion_tokens).toBeUndefined();
 		}
-	});
-
-	it("omits reasoning effort for OpenCode Grok Build", async () => {
-		const model = getModel("opencode", "grok-build-0.1")!;
-		let payload: unknown;
-
-		await streamSimple(
-			model,
-			{
-				messages: [{ role: "user", content: "Hi", timestamp: Date.now() }],
-			},
-			{
-				apiKey: "test",
-				reasoning: "high",
-				onPayload: (params: unknown) => {
-					payload = params;
-				},
-			},
-		).result();
-
-		const params = (payload ?? mockState.lastParams) as { reasoning_effort?: string };
-		expect(params.reasoning_effort).toBeUndefined();
 	});
 
 	it("does not double-count reasoning tokens in completion usage", async () => {

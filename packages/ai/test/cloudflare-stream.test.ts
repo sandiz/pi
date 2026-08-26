@@ -7,7 +7,7 @@ const model: Model<Api> = {
 	id: "model",
 	name: "model",
 	api: "openai-completions",
-	provider: "cloudflare-ai-gateway",
+	provider: "cloudflare-workers-ai",
 	baseUrl: "https://gateway.ai.cloudflare.com/v1/{CLOUDFLARE_ACCOUNT_ID}/{CLOUDFLARE_GATEWAY_ID}/openai",
 	reasoning: false,
 	input: ["text"],
