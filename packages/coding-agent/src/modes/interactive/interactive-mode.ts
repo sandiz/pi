@@ -1744,9 +1744,14 @@ export class InteractiveMode {
 			if (extensions.length > 0) {
 				// An extension that called describe() shows its name and what it does.
 				// One that did not shows its path, which is all pi ever knew about it.
-				const label = (item: { path: string; name?: string; description?: string }, fallback: string) => {
-					const head = item.name ?? fallback;
-					return item.description ? `${head.padEnd(EXT_NAME_COL)} ${item.description}` : head;
+				// One shape for every row: a short label, then what it is. An extension
+				// that described itself says what it does; one that did not says where
+				// it came from, which is all pi knows about it. Mixing a bare name
+				// against a full path put two different kinds of thing in one column.
+				const label = (item: { path: string; name?: string; description?: string }, full: string) => {
+					const head = item.name ?? full.split("/").pop() ?? full;
+					const tail = item.description ?? (item.name ? "" : full);
+					return tail ? `${head.padEnd(EXT_NAME_COL)} ${theme.fg("dim", tail)}` : head;
 				};
 				const groups = this.buildScopeGroups(extensions);
 				const extList = this.formatScopeGroups(groups, {
