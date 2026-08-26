@@ -1614,7 +1614,7 @@ export class InteractiveMode {
 	}
 
 	private showLoadedResources(options?: {
-		extensions?: Array<{ path: string; sourceInfo?: SourceInfo }>;
+		extensions?: Array<{ path: string; sourceInfo?: SourceInfo; name?: string; description?: string }>;
 		force?: boolean;
 		showDiagnosticsWhenQuiet?: boolean;
 	}): void {
@@ -1663,6 +1663,9 @@ export class InteractiveMode {
 				.map((extension) => ({
 					path: extension.path,
 					sourceInfo: extension.sourceInfo,
+					// Carried through, or describe() sets fields nothing can read.
+					name: extension.name,
+					description: extension.description,
 				}));
 		const sourceInfos = new Map<string, SourceInfo>();
 		for (const extension of extensions) {
