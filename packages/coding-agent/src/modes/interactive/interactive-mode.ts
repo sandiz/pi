@@ -210,6 +210,8 @@ function isCustomSessionEntry(item: RenderSessionItem): item is Extract<SessionE
 }
 
 const DEAD_TERMINAL_ERROR_CODES = new Set(["EIO", "EPIPE", "ENOTCONN"]);
+// Column the extension description starts at in the expanded listing.
+const EXT_NAME_COL = 18;
 
 function isDeadTerminalError(error: unknown): boolean {
 	if (!error || typeof error !== "object" || !("code" in error)) {
@@ -1381,7 +1383,16 @@ export class InteractiveMode {
 		return segments.join("/");
 	}
 
-	private getCompactExtensionLabels(extensions: Array<{ path: string; sourceInfo?: SourceInfo }>): string[] {
+	private getCompactExtensionLabels(
+		extensions: Array<{ path: string; sourceInfo?: SourceInfo; name?: string }>,
+	): string[] {
+		// A described extension is its name here too, so the compact line reads as a
+		// list of things rather than a list of files.
+		const named = extensions.filter((e) => e.name).map((e) => e.name as string);
+		const rest = extensions.filter((e) => !e.name);
+		if (named.length > 0) {
+			return [...named, ...this.getCompactExtensionLabels(rest)];
+		}
 		const nonPackageExtensions = extensions
 			.map((extension) => {
 				const segments = this.getCompactDisplayPathSegments(extension.path);
@@ -1728,11 +1739,17 @@ export class InteractiveMode {
 			}
 
 			if (extensions.length > 0) {
+				// An extension that called describe() shows its name and what it does.
+				// One that did not shows its path, which is all pi ever knew about it.
+				const label = (item: { path: string; name?: string; description?: string }, fallback: string) => {
+					const head = item.name ?? fallback;
+					return item.description ? `${head.padEnd(EXT_NAME_COL)} ${item.description}` : head;
+				};
 				const groups = this.buildScopeGroups(extensions);
 				const extList = this.formatScopeGroups(groups, {
-					formatPath: (item) => this.formatExtensionDisplayPath(item.path),
+					formatPath: (item) => label(item, this.formatExtensionDisplayPath(item.path)),
 					formatPackagePath: (item) =>
-						this.formatExtensionDisplayPath(this.getShortPath(item.path, item.sourceInfo)),
+						label(item, this.formatExtensionDisplayPath(this.getShortPath(item.path, item.sourceInfo))),
 				});
 				const extensionCompactList = formatCompactList(this.getCompactExtensionLabels(extensions));
 				addLoadedSection("Extensions", extensionCompactList, extList, "mdHeading");

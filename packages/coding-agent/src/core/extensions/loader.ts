@@ -253,6 +253,12 @@ function createExtensionAPI(
 	eventBus: EventBus,
 ): ExtensionAPI {
 	const api = {
+		describe(meta: { name?: string; description?: string }): void {
+			runtime.assertActive();
+			if (meta.name !== undefined) extension.name = meta.name;
+			if (meta.description !== undefined) extension.description = meta.description;
+		},
+
 		// Registration methods - write to extension
 		on(event: string, handler: HandlerFn): void {
 			runtime.assertActive();

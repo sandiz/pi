@@ -1196,6 +1196,13 @@ export type ExtensionHandler<E, R = undefined> = (event: E, ctx: ExtensionContex
  * ExtensionAPI passed to extension factory functions.
  */
 export interface ExtensionAPI {
+	/**
+	 * Say what this extension is. The startup listing shows filenames otherwise,
+	 * which tells a reader where the code lives and nothing about what it does.
+	 * Both fields are optional; an extension that says nothing still lists.
+	 */
+	describe(meta: { name?: string; description?: string }): void;
+
 	// =========================================================================
 	// Event Subscription
 	// =========================================================================
@@ -1696,6 +1703,10 @@ export interface Extension {
 	path: string;
 	resolvedPath: string;
 	hidden?: boolean;
+	/** Set by `describe()`. Shown instead of the filename in the startup listing. */
+	name?: string;
+	/** Set by `describe()`. One line, shown beside the name in the expanded listing. */
+	description?: string;
 	sourceInfo: SourceInfo;
 	handlers: Map<string, HandlerFn[]>;
 	tools: Map<string, RegisteredTool>;
