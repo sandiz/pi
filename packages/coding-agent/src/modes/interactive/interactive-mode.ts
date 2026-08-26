@@ -1691,9 +1691,15 @@ export class InteractiveMode {
 
 		if (showListing) {
 			const systemPromptSource = this.session.resourceLoader.getSystemPromptSource();
+			// Extensions that compose a system prompt themselves declare their files
+			// through setContextFiles, because the loader never saw them.
+			const declared = this.session.resourceLoader
+				.getExtensions()
+				.extensions.flatMap((e) => (e.contextFiles ?? []).map((path) => ({ path })));
 			const contextFiles = [
 				...(systemPromptSource ? [systemPromptSource] : []),
 				...this.session.resourceLoader.getAppendSystemPromptSources(),
+				...declared,
 				...this.session.resourceLoader.getAgentsFiles().agentsFiles,
 			];
 			if (contextFiles.length > 0) {

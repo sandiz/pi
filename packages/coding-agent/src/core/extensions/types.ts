@@ -1203,6 +1203,17 @@ export interface ExtensionAPI {
 	 */
 	describe(meta: { name?: string; description?: string }): void;
 
+	/**
+	 * Declare the prompt files this extension is using.
+	 *
+	 * `[Context]` lists what the RESOURCE LOADER read: a system prompt file,
+	 * `--append-system-prompt` files, and AGENTS.md. An extension that composes a
+	 * system prompt itself contributes none of those, so its prompt is invisible
+	 * however large it is. Replaces the set rather than appending, because an
+	 * extension that switches prompts mid-session has to be able to say so.
+	 */
+	setContextFiles(paths: string[]): void;
+
 	// =========================================================================
 	// Event Subscription
 	// =========================================================================
@@ -1707,6 +1718,9 @@ export interface Extension {
 	name?: string;
 	/** Set by `describe()`. One line, shown beside the name in the expanded listing. */
 	description?: string;
+	/** Set by `setContextFiles()`. Prompt files this extension put in the system
+	    prompt itself, which the loader cannot see and would otherwise go unlisted. */
+	contextFiles?: string[];
 	sourceInfo: SourceInfo;
 	handlers: Map<string, HandlerFn[]>;
 	tools: Map<string, RegisteredTool>;

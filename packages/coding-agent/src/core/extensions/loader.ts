@@ -259,6 +259,11 @@ function createExtensionAPI(
 			if (meta.description !== undefined) extension.description = meta.description;
 		},
 
+		setContextFiles(paths: string[]): void {
+			runtime.assertActive();
+			extension.contextFiles = [...paths];
+		},
+
 		// Registration methods - write to extension
 		on(event: string, handler: HandlerFn): void {
 			runtime.assertActive();
